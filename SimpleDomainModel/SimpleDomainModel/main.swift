@@ -87,11 +87,12 @@ public struct Money {
     let converted = self.convert(from.currency)
     return Money(amount: from.amount - converted.amount , currency: from.currency)
   }
+}
 
 
 ////////////////////////////////////
 // Job
-//
+////
 open class Job {
   fileprivate var title : String
   fileprivate var type : JobType
@@ -102,66 +103,111 @@ open class Job {
   }
 
   public init(title : String, type : JobType) {
-    
+    self.title = title
+    self.type = type
   }
 
-//  open func calculateIncome(_ hours: Int) -> Int {
-//  }
-//
-//  open func raise(_ amt : Double) {
-//  }
-//}
-//
+  open func calculateIncome(_ hours: Int) -> Int {
+    switch self.type {
+    case .Hourly(let hour):
+        return Int(Double(hours) * hour)
+    case .Salary(let sal):
+        return sal
+    }
+}
+
+  open func raise(_ amt : Double) {
+    switch self.type {
+    case .Hourly(let hour):
+        self.type = JobType.Hourly(hour + amt)
+    case .Salary(let sal):
+       self.type = JobType.Salary(sal + Int(amt))
+    }
+  }
+}
+
+
 //////////////////////////////////////
 //// Person
 ////
-//open class Person {
-//  open var firstName : String = ""
-//  open var lastName : String = ""
-//  open var age : Int = 0
-//
-//  fileprivate var _job : Job? = nil
-//  open var job : Job? {
-//    get { }
-//    set(value) {
-//    }
-//  }
-//
-//  fileprivate var _spouse : Person? = nil
-//  open var spouse : Person? {
-//    get { }
-//    set(value) {
-//    }
-//  }
-//
-//  public init(firstName : String, lastName: String, age : Int) {
-//    self.firstName = firstName
-//    self.lastName = lastName
-//    self.age = age
-//  }
-//
-//  open func toString() -> String {
-//  }
-//}
-//
-//////////////////////////////////////
-//// Family
-////
-//open class Family {
-//  fileprivate var members : [Person] = []
-//
-//  public init(spouse1: Person, spouse2: Person) {
-//  }
-//
-//  open func haveChild(_ child: Person) -> Bool {
-//  }
-//
-//  open func householdIncome() -> Int {
-//  }
-//}
-//
-//
-//
-//
-//
+open class Person {
+  open var firstName : String = ""
+  open var lastName : String = ""
+  open var age : Int = 0
+
+  fileprivate var _job : Job? = nil
+  open var job : Job? {
+    get {
+        return _job
+    }
+    set(value) {
+        if self.age >= 16 {
+            self._job = value
+        }
+    }
+  }
+
+  fileprivate var _spouse : Person? = nil
+  open var spouse : Person? {
+    get {
+        return _spouse
+    }
+    set(value) {
+        if self.age >= 18 {
+            self._spouse = value
+        }
+    }
+  }
+
+  public init(firstName : String, lastName: String, age : Int) {
+    self.firstName = firstName
+    self.lastName = lastName
+    self.age = age
+  }
+
+  open func toString() -> String {
+    return "[Person: firstName:\(firstName) lastName:\(lastName) age:\(age) job:\(String(describing: _job?.type)) spouse:\(String(describing: _spouse?.firstName))]"
+  }
 }
+
+////////////////////////////////////
+// Family
+//
+open class Family {
+  fileprivate var members : [Person] = []
+
+  public init(spouse1: Person, spouse2: Person) {
+    if spouse1._spouse == nil && spouse2._spouse == nil {
+        spouse1._spouse = spouse2
+        spouse2._spouse = spouse1
+        members.append(spouse1)
+        members.append(spouse2)
+    }
+  }
+
+  open func haveChild(_ child: Person) -> Bool {
+    if members[0].age < 21 || members[1].age < 21 {
+        return false
+    }
+    members.append(child)
+    return true
+  }
+
+  open func householdIncome() -> Int {
+    var income = 0
+    for i in members {
+        if let haveJob = i._job {
+            income += haveJob.calculateIncome(2000)
+        }
+    }
+    return income
+  }
+}
+
+
+
+
+
+
+
+
